@@ -39,3 +39,17 @@ void printMatriz(double **m, int n){
     }
     
 }
+
+// aloca um sistema triangular
+S_tri *alocaLU(int n){
+    S_tri *sistema;
+    // aloca os ponteiros para as linhas
+    sistema->coef = malloc(n * sizeof(double*));
+    // aloca cada uma das linhas
+    for (int i = 0; i < n; i++)
+        sistema->coef[i] = malloc(i+1 * sizeof(double));
+    sistema->n = n;
+
+    return sistema;
+    
+}

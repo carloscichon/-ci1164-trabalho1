@@ -23,7 +23,11 @@ int main(int argc, char **argv){
     }
     int n;
     double **entrada;
+    S_tri *L;
+
     scanf("%d", &n);
     entrada = leMatriz(n);
     printMatriz(entrada, n);
+
+    L = alocaLU(n);
 }
