@@ -51,5 +51,52 @@ S_tri *alocaLU(int n){
     sistema->n = n;
 
     return sistema;
+}
+
+void printTri(S_tri *sistema){
+    for (int i = 0; i < sistema->n; i++){
+        for (int j = 0; i < i+1; j++){
+            printf("%f ", sistema->coef[i][j]);
+        }
+    }
+    
+}
+
+// encontra o maior pivo
+int encontraMax(double **A, int i, int n){
+  double numLinha=0;
+  int maior=0;
+  for (int j = i; j < n; j++){
+    if (A[j][i] >= numLinha){
+      maior = j;
+      numLinha = A[j][i];
+    }
+  }
+  return maior;
+}
+
+// triangularizacao
+int triangulariza(double **entrada, int n, S_tri *L, int pivo){
+    for (int i = 0; i < n; i++){
+        /*if (pivo){
+            pivo = encontraMax(entrada, i, n);
+            if(pivo != i){
+                // troca linha
+            }
+        }*/
+
+        for (int k=i+1; k < n; k++){
+            printf("Teste : %lf\n", entrada[k][i]);
+            double m = entrada[k][i] / entrada[i][i];
+            printf("Teste i,j: %d,%d\n", k,i);
+            L->coef[k][i] = m;
+            entrada[k][i] = 0.0;
+            for (int j = i+1; j < n; j++)
+                entrada[k][j] -= entrada[i][j] * m;
+            //gauss->b[k] -= gauss->b[i] * m;
+    }
+        
+        
+    }
     
 }

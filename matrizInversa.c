@@ -27,7 +27,10 @@ int main(int argc, char **argv){
 
     scanf("%d", &n);
     entrada = leMatriz(n);
-    printMatriz(entrada, n);
+    //printMatriz(entrada, n);
+    //printf("olha aqui: %lf\n",entrada[1][0]);
 
     L = alocaLU(n);
+    triangulariza(entrada, n, L, 0);
+    printTri(L);
 }
