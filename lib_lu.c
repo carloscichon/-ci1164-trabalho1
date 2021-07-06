@@ -89,13 +89,35 @@ int encontraMax(double **A, int i, int n){
   return maior;
 }
 
+//copia um vetor em outro
+void copyV(double *a, double *b, int n){
+  for (int i = 0; i < n; i++)
+    b[i] = a[i];
+}
+
+void trocaLinha(double **matriz, int n, int i, int iPivo){
+  double *auxVet = malloc(n * sizeof(double));
+  double aux;
+  
+  copyV(matriz[i], auxVet, n);
+  copyV(matriz[iPivo], matriz[i], n);
+  copyV(auxVet, matriz[iPivo], n);
+  free(auxVet);
+  
+  // aqui troca as linhas do vetor de resultados
+  /*aux = SL->b[i];
+  SL->b[i] = SL->b[iPivo];
+  SL->b[iPivo] = aux;*/
+
+}
+
 // triangularizacao
 int triangulariza(double **entrada, int n, S_tri *L, int pivo){
     for (int i = 0; i < n; i++){
         if (pivo){
             pivo = encontraMax(entrada, i, n);
             if(pivo != i){
-                // troca linha
+                trocaLinha(entrada, n, i, pivo);
             }
         }
         
@@ -110,21 +132,22 @@ int triangulariza(double **entrada, int n, S_tri *L, int pivo){
 }
 
 // passar as n colunas da matriz indentidade para calcular a matriz Y 
-void retrosSubsL(S_tri *sistema, real_t *y){
+/*
+void retrosSubsL(S_tri *sistema, double *y){
   for (int i = 0; i < SL->n; ++i){
     y[i] = SL->b[i];
     for (int j = i+1; j < SL->n; j++)
-      y[i] -= SL->A[i][j] * y[j];
-    y[i] /= SL->A[i][i];
+      y[i] -= matriz[i][j] * y[j];
+    y[i] /= matriz[i][i];
   }
 }
 
 // passar as n colunas da matriz Y para calcular a matriz X
-void retrossubs(SistLinear_t *SL, real_t *x){
+void retrossubs(SistLinear_t *SL, double *x){
   for (int i = SL->n-1; i >= 0; i--){
     x[i] = SL->b[i];
     for (int j = i+1; j < SL->n; j++)
-      x[i] -= SL->A[i][j] * x[j];
-    x[i] /= SL->A[i][i];
+      x[i] -= matriz[i][j] * x[j];
+    x[i] /= matriz[i][i];
   }
-}
+}*/
