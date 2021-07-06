@@ -52,23 +52,13 @@ void initLu(S_tri *sistema){
     }  
 }
 
-// aloca um sistema triangular
-S_tri *alocaLU(int n){
-    S_tri *sistema = malloc(sizeof(S_tri));
-    // aloca os ponteiros para as linhas
-    printf("aloca os ponteiros para as linhas\n");
-    sistema->coef = malloc(((1+(n-1))*n)/2 * sizeof(double*));
-    
-    printf("aloca o coef0\n");
-    sistema->coef[0] = malloc(n * sizeof(double));
-    // aloca cada uma das linhas
-    for (int i = 1; i < n; i++)
-        sistema->coef[i] = sistema->coef[i-1] + i;
-
-    printf("aloca cada uma das linhas\n");
-    sistema->n = n;
-    initLu(sistema);
-    return sistema;
+void printTri(S_tri *sistema){
+    for (int i = 0; i < sistema->n; i++){
+        for (int j = 0; j < i+1; j++){
+            printf("%f ", sistema->coef[i][j]);
+        }
+        printf("\n");
+    }
 }
 
 // aloca um sistema triangular
@@ -84,15 +74,6 @@ S_tri *alocaLUPadrao(int n){
     initLu(sistema);
     printTri(sistema);
     return sistema;
-}
-
-void printTri(S_tri *sistema){
-    for (int i = 0; i < sistema->n; i++){
-        for (int j = 0; j < i+1; j++){
-            printf("%f ", sistema->coef[i][j]);
-        }
-        printf("\n");
-    }
 }
 
 // encontra o maior pivo
@@ -126,4 +107,24 @@ int triangulariza(double **entrada, int n, S_tri *L, int pivo){
                 entrada[k][j] -= entrada[i][j] * m;
         }
     }
+}
+
+// passar as n colunas da matriz indentidade para calcular a matriz Y 
+void retrosSubsL(S_tri *sistema, real_t *y){
+  for (int i = 0; i < SL->n; ++i){
+    y[i] = SL->b[i];
+    for (int j = i+1; j < SL->n; j++)
+      y[i] -= SL->A[i][j] * y[j];
+    y[i] /= SL->A[i][i];
+  }
+}
+
+// passar as n colunas da matriz Y para calcular a matriz X
+void retrossubs(SistLinear_t *SL, real_t *x){
+  for (int i = SL->n-1; i >= 0; i--){
+    x[i] = SL->b[i];
+    for (int j = i+1; j < SL->n; j++)
+      x[i] -= SL->A[i][j] * x[j];
+    x[i] /= SL->A[i][i];
+  }
 }
