@@ -41,25 +41,58 @@ void printMatriz(double **m, int n){
 }
 
 // aloca um sistema triangular
-S_tri *alocaLU(int n){
-    S_tri *sistema;
-    // aloca os ponteiros para as linhas
-    sistema->coef = malloc(n * sizeof(double*));
-    // aloca cada uma das linhas
-    for (int i = 0; i < n; i++)
-        sistema->coef[i] = malloc(i+1 * sizeof(double));
-    sistema->n = n;
+void initLu(S_tri *sistema){
+    for (int i = 0; i < sistema->n; ++i) {
+        for (int j = 0; j <= i; ++j){
+            if(i == j)
+                sistema->coef[i][j] = 1.0;
+            else
+                sistema->coef[i][j] = 0.0;
+        }
+    }  
+}
 
+// aloca um sistema triangular
+S_tri *alocaLU(int n){
+    S_tri *sistema = malloc(sizeof(S_tri));
+    // aloca os ponteiros para as linhas
+    printf("aloca os ponteiros para as linhas\n");
+    sistema->coef = malloc(((1+(n-1))*n)/2 * sizeof(double*));
+    
+    printf("aloca o coef0\n");
+    sistema->coef[0] = malloc(n * sizeof(double));
+    // aloca cada uma das linhas
+    for (int i = 1; i < n; i++)
+        sistema->coef[i] = sistema->coef[i-1] + i;
+
+    printf("aloca cada uma das linhas\n");
+    sistema->n = n;
+    initLu(sistema);
+    return sistema;
+}
+
+// aloca um sistema triangular
+S_tri *alocaLUPadrao(int n){
+    S_tri *sistema = malloc(sizeof(S_tri));
+    
+    sistema->coef = malloc(n * sizeof(double*));
+    for (int i = 0; i < n; ++i) {
+        sistema->coef[i] = malloc((i+1) * sizeof(double*));
+    }
+      
+    sistema->n = n;
+    initLu(sistema);
+    printTri(sistema);
     return sistema;
 }
 
 void printTri(S_tri *sistema){
     for (int i = 0; i < sistema->n; i++){
-        for (int j = 0; i < i+1; j++){
+        for (int j = 0; j < i+1; j++){
             printf("%f ", sistema->coef[i][j]);
         }
+        printf("\n");
     }
-    
 }
 
 // encontra o maior pivo
@@ -67,7 +100,7 @@ int encontraMax(double **A, int i, int n){
   double numLinha=0;
   int maior=0;
   for (int j = i; j < n; j++){
-    if (A[j][i] >= numLinha){
+    if (A[j][i] > numLinha){
       maior = j;
       numLinha = A[j][i];
     }
@@ -78,25 +111,19 @@ int encontraMax(double **A, int i, int n){
 // triangularizacao
 int triangulariza(double **entrada, int n, S_tri *L, int pivo){
     for (int i = 0; i < n; i++){
-        /*if (pivo){
+        if (pivo){
             pivo = encontraMax(entrada, i, n);
             if(pivo != i){
                 // troca linha
             }
-        }*/
-
+        }
+        
         for (int k=i+1; k < n; k++){
-            printf("Teste : %lf\n", entrada[k][i]);
             double m = entrada[k][i] / entrada[i][i];
-            printf("Teste i,j: %d,%d\n", k,i);
             L->coef[k][i] = m;
             entrada[k][i] = 0.0;
             for (int j = i+1; j < n; j++)
                 entrada[k][j] -= entrada[i][j] * m;
-            //gauss->b[k] -= gauss->b[i] * m;
+        }
     }
-        
-        
-    }
-    
 }

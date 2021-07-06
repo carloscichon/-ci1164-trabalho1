@@ -26,11 +26,15 @@ int main(int argc, char **argv){
     S_tri *L;
 
     scanf("%d", &n);
+    //printf("n %d\n", n);
+    L = alocaLUPadrao(n);
+    //L = alocaLU(n);
     entrada = leMatriz(n);
-    //printMatriz(entrada, n);
-    //printf("olha aqui: %lf\n",entrada[1][0]);
-
-    L = alocaLU(n);
+    printMatriz(entrada, n);
+    
     triangulariza(entrada, n, L, 0);
-    printTri(L);
+    //printf("Tamanho do L: %ld\n", sizeof(L->coef));
+    printMatriz(L->coef, n);
+
+    //printTri(L);
 }
