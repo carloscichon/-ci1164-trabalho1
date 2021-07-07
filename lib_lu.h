@@ -19,3 +19,4 @@ void printTri(S_tri *sistema);
 // funcoes da fatoracao LU
 int triangulariza(double **entrada, int n, S_tri *L, int pivo);
 int encontraMax(double **A, int i, int n);
+int fatoracaoLU(double **entrada, int n, S_tri *L);

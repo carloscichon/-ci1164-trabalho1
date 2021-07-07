@@ -41,11 +41,12 @@ int main(int argc, char **argv){
         return 1;
     }
     
-    printMatriz(entrada, n);
+    //printMatriz(entrada, n);
     
     triangulariza(entrada, n, L, pivo);
     //printf("Tamanho do L: %ld\n", sizeof(L->coef));
     //printMatriz(L->coef, n);
-    printTri(L);
+    //printTri(L);
+    fatoracaoLU(entrada, n, L);
 
 }

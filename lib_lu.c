@@ -49,8 +49,8 @@ double **leMatriz(int n){
 
 /*!
   \brief Printa na saída padrão uma matriz quadrada (debug)
-  \param n Tamanho da matriz nxn.
   \param m Matriz a ser printada
+  \param n Tamanho da matriz nxn.
 */
 void printMatriz(double **m, int n){
     for (int i = 0; i < n; i++){
@@ -107,7 +107,7 @@ S_tri *alocaLUPadrao(int n){
     
     sistema->n = n;
     initLu(sistema);
-    printTri(sistema);
+    //printTri(sistema);
     return sistema;
 }
 
@@ -167,7 +167,7 @@ void trocaLinha(double **matriz, int n, int i, int iPivo){
 /*!
   \brief Realiza a triangularização de uma matriz e salva as operações num Sistema Triangular.
   \param entrada Matriz a ter linhas trocadas.
-  \param n Tamango da matriz nxn.
+  \param n Tamanho da matriz nxn.
   \param L Sistema Triangular que receberá as operações (L da fatoração LU).
   \param pivo Flag de pivoteamento parcial
 */
@@ -190,23 +190,94 @@ int triangulariza(double **entrada, int n, S_tri *L, int pivo){
     }
 }
 
-// passar as n colunas da matriz indentidade para calcular a matriz Y 
-/*
-void retrosSubsL(S_tri *sistema, double *y){
-  for (int i = 0; i < SL->n; ++i){
-    y[i] = SL->b[i];
-    for (int j = i+1; j < SL->n; j++)
-      y[i] -= matriz[i][j] * y[j];
-    y[i] /= matriz[i][i];
+/*!
+  \brief Preenche com 1s a matriz identidade
+  \param matriz Matriz identidade
+  \param n Tamanho da matriz identidade
+*/
+void preencheIdent(double **matriz, int n){
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+      if(i == j)
+        matriz[i][j] = 1.0;
+}
+
+/*!
+  \brief Printa um vetor (debug)
+  \param v Vetor a ser printado
+  \param n Tamanho do vetor
+*/
+void printVetor(double *v, int n){
+  for (int i = 0; i < n; i++){
+    printf("%lf ", v[i]);
+  }
+  printf("\n");
+}
+
+/*!
+  \brief Realiza a retrossubstituição em L para obter Y
+  \param sistema Sistema triangular L
+  \param b Coluna da matriz identidade
+  \param y Vetor Y a ser obtido
+  \param n Tamanho dos vetores
+*/
+void retrosSubsL(S_tri *sistema, double *b, double *y, int n){
+  for (int i = 0; i < n; ++i){
+    y[i] = b[i];
+    for (int j = 0; j < i; j++)
+      y[i] -= sistema->coef[i][j] * y[j];
+    y[i] /= sistema->coef[i][i];
   }
 }
 
-// passar as n colunas da matriz Y para calcular a matriz X
-void retrossubs(SistLinear_t *SL, double *x){
-  for (int i = SL->n-1; i >= 0; i--){
-    x[i] = SL->b[i];
-    for (int j = i+1; j < SL->n; j++)
-      x[i] -= matriz[i][j] * x[j];
-    x[i] /= matriz[i][i];
+/*!
+  \brief Realiza a retrossubstituição em U para obter X
+  \param a Matriz U
+  \param y Vetor Y
+  \param x Vetor X a ser obtido
+  \param n Tamanho dos vetores
+*/
+void retrosSubsU(double **a, double *y, double *x, int n){
+  for (int i = n-1; i >= 0; i--){
+    x[i] = y[i];
+    for (int j = i+1; j < n; j++)
+      x[i] -= a[i][j] * x[j];
+    x[i] /= a[i][i];
   }
-}*/
+  //printVetor(x, n);
+
+}
+
+/*!
+  \brief Copia um vetor para uma coluna de matriz
+  \param m Matriz destino
+  \param v Vetor a ser copiado
+  \param n Tamanho da matriz e do vetor
+  \param i Numero da coluna a ser copiado
+*/
+void copyCol(double **m, double *v, int n, int i){
+  for (int j = 0; j < n; j++)
+    m[j][i] = v[j];
+}
+
+/*!
+  \brief Aplica a fatoração LU para descobrir a matriz inversa
+  \param entrada Matriz U
+  \param n Tamanho da matriz e do Sistema Triangular
+  \param L Sistema Triangular L
+*/
+int fatoracaoLU(double **entrada, int n, S_tri *L){
+  double *Y, *X, **ident, **saida;
+  Y = malloc(n * sizeof(double));
+  X = malloc(n * sizeof(double));
+  ident = alocaMatriz(n);
+  saida = alocaMatriz(n);
+  preencheIdent(ident, n);
+
+  for (int i = 0; i < n; i++){
+    retrosSubsL(L, ident[i], Y, n); // transposta da identidade é ela mesma
+    retrosSubsU(entrada, Y, X, n);
+    copyCol(saida, X, n, i);
+  }
+  printMatriz(saida, n);
+}
