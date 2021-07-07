@@ -1,6 +1,10 @@
 #include "lib_lu.h"
 
-// aloca uma matriz de double
+/*!
+  \brief Alocação de uma matriz quadrada.
+  \param n Tamanho da matriz nxn.
+  \return Retorna a matriz alocada dinamicamente.
+*/
 double **alocaMatriz(int n){
     // aloca um vetor de n ponteiros para linhas
     double **matriz = malloc(n * sizeof(double*));
@@ -12,15 +16,29 @@ double **alocaMatriz(int n){
     return matriz;
 }
 
-// libera a memória de uma matriz
-void liberaMatriz(double **matriz){
+/*!
+  \brief Liberação da memória alocada para uma matriz quadrada.
+  \param matriz A matriz a ser liberada
+  \return - se a liberação funcionou. 1 se não.
+*/
+int liberaMatriz(double **matriz){
     free(matriz[0]);
     free(matriz);
+    if(matriz == NULL)
+        return 0;
+    return 1;
 }
 
-// realiza a leitura da matriz entrada
+/*!
+  \brief Leitura de uma matriz quadrada.
+  \param n Tamanho da matriz nxn.
+  \return Retorna a matriz com os valores lidos ou NULL caso haja algum erro.
+*/
 double **leMatriz(int n){
     double **matriz = alocaMatriz(n);
+    if(matriz == NULL)
+        return NULL;
+
     for (int i = 0; i < n; i++){
         for (int j = 0; j < n; j++){
             scanf("%lf", &matriz[i][j]);
@@ -29,7 +47,11 @@ double **leMatriz(int n){
     return matriz;
 }
 
-// printa a matriz de entrada (debug)
+/*!
+  \brief Printa na saída padrão uma matriz quadrada (debug)
+  \param n Tamanho da matriz nxn.
+  \param m Matriz a ser printada
+*/
 void printMatriz(double **m, int n){
     for (int i = 0; i < n; i++){
         for (int j = 0; j < n; j++){
@@ -40,7 +62,10 @@ void printMatriz(double **m, int n){
     
 }
 
-// aloca um sistema triangular
+/*!
+  \brief Inicializa um Sistema Triangular
+  \param sistema O sistema a ser inicializado.
+*/
 void initLu(S_tri *sistema){
     for (int i = 0; i < sistema->n; ++i) {
         for (int j = 0; j <= i; ++j){
@@ -52,6 +77,10 @@ void initLu(S_tri *sistema){
     }  
 }
 
+/*!
+  \brief Printa na saída padrão um Sistema Triangular
+  \param sistema Sistema a ser impresso.
+*/
 void printTri(S_tri *sistema){
     for (int i = 0; i < sistema->n; i++){
         for (int j = 0; j < i+1; j++){
@@ -61,7 +90,11 @@ void printTri(S_tri *sistema){
     }
 }
 
-// aloca um sistema triangular
+/*!
+  \brief Alocação de um sistema triangular.
+  \param n Tamanho da matriz nxn.
+  \return Retorna o sistema alocado dinamicamente ou NULL caso haja algum erro.
+*/
 S_tri *alocaLUPadrao(int n){
     S_tri *sistema = malloc(sizeof(S_tri));
     
@@ -69,14 +102,22 @@ S_tri *alocaLUPadrao(int n){
     for (int i = 0; i < n; ++i) {
         sistema->coef[i] = malloc((i+1) * sizeof(double*));
     }
-      
+    if(sistema == NULL)
+        return NULL;
+    
     sistema->n = n;
     initLu(sistema);
     printTri(sistema);
     return sistema;
 }
 
-// encontra o maior pivo
+/*!
+  \brief Encontra o pivo para o pivoteamento parcial.
+  \param A Matriz a ser encontrado o pivo.
+  \param i Número da coluna que está sendo testada.
+  \param n Tamanho da matriz nxn.
+  \return Retorna o maior valor abaixo de i.
+*/
 int encontraMax(double **A, int i, int n){
   double numLinha=0;
   int maior=0;
@@ -89,12 +130,24 @@ int encontraMax(double **A, int i, int n){
   return maior;
 }
 
-//copia um vetor em outro
+/*!
+  \brief Copia um vetor em outro.
+  \param a Vetor fonte.
+  \param b Vetor destino.
+  \param n Tamanho do vetor.
+*/
 void copyV(double *a, double *b, int n){
   for (int i = 0; i < n; i++)
     b[i] = a[i];
 }
 
+/*!
+  \brief Troca duas linhas de uma matriz.
+  \param matriz Matriz a ter linhas trocadas.
+  \param n Tamango da matriz nxn.
+  \param i Número da linha a ser trocada.
+  \param i Número da outra linha a ser trocada.
+*/
 void trocaLinha(double **matriz, int n, int i, int iPivo){
   double *auxVet = malloc(n * sizeof(double));
   double aux;
@@ -111,7 +164,13 @@ void trocaLinha(double **matriz, int n, int i, int iPivo){
 
 }
 
-// triangularizacao
+/*!
+  \brief Realiza a triangularização de uma matriz e salva as operações num Sistema Triangular.
+  \param entrada Matriz a ter linhas trocadas.
+  \param n Tamango da matriz nxn.
+  \param L Sistema Triangular que receberá as operações (L da fatoração LU).
+  \param pivo Flag de pivoteamento parcial
+*/
 int triangulariza(double **entrada, int n, S_tri *L, int pivo){
     for (int i = 0; i < n; i++){
         if (pivo){

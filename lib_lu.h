@@ -8,7 +8,7 @@ typedef struct S_tri{
 
 // funções de tratamento da matriz de entrada
 double **alocaMatriz(int n);
-void liberaMatriz(double **matriz);
+int liberaMatriz(double **matriz);
 double **leMatriz(int n);
 void printMatriz(double **m, int n);
 

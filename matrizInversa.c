@@ -34,6 +34,13 @@ int main(int argc, char **argv){
     L = alocaLUPadrao(n);
     //L = alocaLU(n);
     entrada = leMatriz(n);
+
+    // erro de alocacao
+    if(entrada == NULL || L == NULL){
+        fprintf(stderr, "Falha na alocação de memória\n");
+        return 1;
+    }
+    
     printMatriz(entrada, n);
     
     triangulariza(entrada, n, L, pivo);
