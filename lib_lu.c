@@ -52,13 +52,14 @@ double **leMatriz(int n){
   \param m Matriz a ser printada
   \param n Tamanho da matriz nxn.
 */
-void printMatriz(double **m, int n){
+void printMatriz(double **m, int n, FILE *saida){
     for (int i = 0; i < n; i++){
         for (int j = 0; j < n; j++){
-            printf("%lf ", m[i][j]);
+            fprintf(saida, "%lf ", m[i][j]);
         }
-        printf("\n");
+        fprintf(saida, "\n");
     }
+    fprintf(saida, "##################################\n"); 
     
 }
 
@@ -188,9 +189,7 @@ int triangulariza(double **entrada, int n, S_tri *L, int pivo, double **ident){
             for (int j = i+1; j < n; j++)
                 entrada[k][j] -= entrada[i][j] * m;
         }
-        //printMatriz(entrada, n);
     }
-    //printMatriz(ident, n);
 }
 
 /*!
@@ -275,29 +274,50 @@ void copyColV(double **m, double *v, int n, int i){
       v[j] = m[j][i];
 }
 
+void imprimeResultados(double **inversa, int n, double tTri, double tY, double tX, FILE *saida){
+  printMatriz(inversa, n, saida);
+  fprintf(saida, "Tempo de Triangularização: %lf ms\n", tTri);
+  fprintf(saida, "Tempo cálculo de Y: %lf\n", tY);
+  fprintf(saida, "Tempo cálculo de X: %lf\n", tX);
+}
+
+
 /*!
   \brief Aplica a fatoração LU para descobrir a matriz inversa
   \param entrada Matriz U
   \param n Tamanho da matriz e do Sistema Triangular
   \param L Sistema Triangular L
 */
-int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo){
-  double *Y, *X, *vIdent, **ident, **saida;
+int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo, FILE *saida){
+  double *Y, *X, *vIdent, **ident, **inversa;
+  double tTriangulacao, tY=0, tX=0, tNorma;
   Y = malloc(n * sizeof(double));
   X = malloc(n * sizeof(double));
   vIdent = malloc(n * sizeof(double));
   ident = alocaMatriz(n);
-  saida = alocaMatriz(n);
+  inversa = alocaMatriz(n);
   preencheIdent(ident, n);
+
+  tTriangulacao = timestamp();
   triangulariza(entrada, n, L, pivo, ident);
-  //printMatriz(ident, n);
-  printf("\n");
+  tTriangulacao = timestamp() - tTriangulacao;
+  fprintf(saida, "%d\n", n);
+  printMatriz(entrada, n, saida);
   for (int i = 0; i < n; i++){
     copyColV(ident, vIdent, n, i);
-    //printVetor(vIdent, n);
-    retrosSubsL(L, vIdent, Y, n); // transposta da identidade é ela mesma
+    tY += timestamp();
+    retrosSubsL(L, vIdent, Y, n);
+    tY = timestamp() - tX;
+    tX += timestamp();
     retrosSubsU(entrada, Y, X, n);
-    copyVCol(saida, X, n, i);
+    tX = timestamp() - tY;
+    copyVCol(inversa, X, n, i);
   }
-  printMatriz(saida, n);
+  tY = tY/n;
+  tX = tX/n;
+  //printMatriz(saida, n);
+  imprimeResultados(inversa, n, tTriangulacao, tY, tX, saida);
+  free(X);
+  free(Y);
+  free(vIdent);
 }

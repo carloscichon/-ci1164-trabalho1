@@ -3,13 +3,13 @@
 
 int main(int argc, char **argv){
     char c;
-    char *outFile=NULL;
+    FILE *saida = stdout;
     int pivo = 0;
     while ((c = getopt (argc, argv, "o:p")) != -1){
         switch (c){
         case 'o':
             printf("Você ativou a opcao o\n");
-            outFile = optarg;
+            saida = fopen(optarg, "w");
             break;
         case 'p':
             printf("Você ativou a opcao p\n");
@@ -46,6 +46,6 @@ int main(int argc, char **argv){
     //printf("Tamanho do L: %ld\n", sizeof(L->coef));
     //printMatriz(L->coef, n);
     //printTri(L);
-    fatoracaoLU(entrada, n, L, pivo);
+    fatoracaoLU(entrada, n, L, pivo, saida);
 
 }
