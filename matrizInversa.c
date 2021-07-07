@@ -28,7 +28,7 @@ int main(int argc, char **argv){
     int n;
     double **entrada;
     S_tri *L;
-
+    //printf("%s\n", outFile);
     scanf("%d", &n);
     //printf("n %d\n", n);
     L = alocaLUPadrao(n);
@@ -43,10 +43,9 @@ int main(int argc, char **argv){
     
     //printMatriz(entrada, n);
     
-    triangulariza(entrada, n, L, pivo);
     //printf("Tamanho do L: %ld\n", sizeof(L->coef));
     //printMatriz(L->coef, n);
     //printTri(L);
-    fatoracaoLU(entrada, n, L);
+    fatoracaoLU(entrada, n, L, pivo);
 
 }

@@ -120,13 +120,16 @@ S_tri *alocaLUPadrao(int n){
 */
 int encontraMax(double **A, int i, int n){
   double numLinha=0;
-  int maior=0;
+  int maior=-1;
   for (int j = i; j < n; j++){
-    if (A[j][i] > numLinha){
+    if (A[j][i] >= numLinha){
+      //printf("%lf Maior que %lf\n", A[j][i], numLinha);
       maior = j;
       numLinha = A[j][i];
     }
   }
+  if(maior == -1)
+    return i;
   return maior;
 }
 
@@ -156,11 +159,6 @@ void trocaLinha(double **matriz, int n, int i, int iPivo){
   copyV(matriz[iPivo], matriz[i], n);
   copyV(auxVet, matriz[iPivo], n);
   free(auxVet);
-  
-  // aqui troca as linhas do vetor de resultados
-  /*aux = SL->b[i];
-  SL->b[i] = SL->b[iPivo];
-  SL->b[iPivo] = aux;*/
 
 }
 
@@ -171,15 +169,18 @@ void trocaLinha(double **matriz, int n, int i, int iPivo){
   \param L Sistema Triangular que receberá as operações (L da fatoração LU).
   \param pivo Flag de pivoteamento parcial
 */
-int triangulariza(double **entrada, int n, S_tri *L, int pivo){
+int triangulariza(double **entrada, int n, S_tri *L, int pivo, double **ident){
+  int iPivo;
     for (int i = 0; i < n; i++){
+      iPivo = 0;
         if (pivo){
-            pivo = encontraMax(entrada, i, n);
-            if(pivo != i){
-                trocaLinha(entrada, n, i, pivo);
+            iPivo = encontraMax(entrada, i, n);
+            printf("Pivo: %d\n", iPivo);
+            if(iPivo != i){
+                trocaLinha(entrada, n, i, iPivo);
+                trocaLinha(ident, n, i, iPivo);
             }
         }
-        
         for (int k=i+1; k < n; k++){
             double m = entrada[k][i] / entrada[i][i];
             L->coef[k][i] = m;
@@ -187,7 +188,9 @@ int triangulariza(double **entrada, int n, S_tri *L, int pivo){
             for (int j = i+1; j < n; j++)
                 entrada[k][j] -= entrada[i][j] * m;
         }
+        //printMatriz(entrada, n);
     }
+    //printMatriz(ident, n);
 }
 
 /*!
@@ -253,11 +256,23 @@ void retrosSubsU(double **a, double *y, double *x, int n){
   \param m Matriz destino
   \param v Vetor a ser copiado
   \param n Tamanho da matriz e do vetor
-  \param i Numero da coluna a ser copiado
+  \param i Numero da coluna a ser copiada
 */
-void copyCol(double **m, double *v, int n, int i){
+void copyVCol(double **m, double *v, int n, int i){
   for (int j = 0; j < n; j++)
-    m[j][i] = v[j];
+      m[j][i] = v[j];
+}
+
+/*!
+  \brief Copia uma coluna de matriz para um vetor
+  \param m Matriz origem
+  \param v Vetor destino
+  \param n Tamanho da matriz e do vetor
+  \param i Numero da coluna a ser copiada
+*/
+void copyColV(double **m, double *v, int n, int i){
+  for (int j = 0; j < n; j++)
+      v[j] = m[j][i];
 }
 
 /*!
@@ -266,18 +281,23 @@ void copyCol(double **m, double *v, int n, int i){
   \param n Tamanho da matriz e do Sistema Triangular
   \param L Sistema Triangular L
 */
-int fatoracaoLU(double **entrada, int n, S_tri *L){
-  double *Y, *X, **ident, **saida;
+int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo){
+  double *Y, *X, *vIdent, **ident, **saida;
   Y = malloc(n * sizeof(double));
   X = malloc(n * sizeof(double));
+  vIdent = malloc(n * sizeof(double));
   ident = alocaMatriz(n);
   saida = alocaMatriz(n);
   preencheIdent(ident, n);
-
+  triangulariza(entrada, n, L, pivo, ident);
+  //printMatriz(ident, n);
+  printf("\n");
   for (int i = 0; i < n; i++){
-    retrosSubsL(L, ident[i], Y, n); // transposta da identidade é ela mesma
+    copyColV(ident, vIdent, n, i);
+    //printVetor(vIdent, n);
+    retrosSubsL(L, vIdent, Y, n); // transposta da identidade é ela mesma
     retrosSubsU(entrada, Y, X, n);
-    copyCol(saida, X, n, i);
+    copyVCol(saida, X, n, i);
   }
   printMatriz(saida, n);
 }
