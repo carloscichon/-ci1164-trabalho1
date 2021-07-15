@@ -176,7 +176,7 @@ int triangulariza(double **entrada, int n, S_tri *L, int pivo, double **ident){
       iPivo = 0;
         if (pivo){
             iPivo = encontraMax(entrada, i, n);
-            printf("Pivo: %d\n", iPivo);
+            //printf("Pivo: %d\n", iPivo);
             if(iPivo != i){
                 trocaLinha(entrada, n, i, iPivo);
                 trocaLinha(ident, n, i, iPivo);
@@ -277,8 +277,8 @@ void copyColV(double **m, double *v, int n, int i){
 void imprimeResultados(double **inversa, int n, double tTri, double tY, double tX, FILE *saida){
   printMatriz(inversa, n, saida);
   fprintf(saida, "Tempo de Triangularização: %lf ms\n", tTri);
-  fprintf(saida, "Tempo cálculo de Y: %lf\n", tY);
-  fprintf(saida, "Tempo cálculo de X: %lf\n", tX);
+  fprintf(saida, "Tempo cálculo de Y: %lf ms\n", tY);
+  fprintf(saida, "Tempo cálculo de X: %lf ms\n", tX);
 }
 
 
@@ -298,19 +298,19 @@ int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo, FILE *saida){
   inversa = alocaMatriz(n);
   preencheIdent(ident, n);
 
+  fprintf(saida, "%d\n", n);
+  printMatriz(entrada, n, saida);
   tTriangulacao = timestamp();
   triangulariza(entrada, n, L, pivo, ident);
   tTriangulacao = timestamp() - tTriangulacao;
-  fprintf(saida, "%d\n", n);
-  printMatriz(entrada, n, saida);
   for (int i = 0; i < n; i++){
     copyColV(ident, vIdent, n, i);
     tY += timestamp();
     retrosSubsL(L, vIdent, Y, n);
-    tY = timestamp() - tX;
+    tY = timestamp() - tY;
     tX += timestamp();
     retrosSubsU(entrada, Y, X, n);
-    tX = timestamp() - tY;
+    tX = timestamp() - tX;
     copyVCol(inversa, X, n, i);
   }
   tY = tY/n;
