@@ -1,6 +1,5 @@
 #include "lib_lu.h"
 
-
 /*!
   \brief Encontra o pivo para o pivoteamento parcial.
   \param A Matriz a ser encontrado o pivo.
@@ -31,6 +30,66 @@ int encontraMax(double **A, int i, int n){
 void copyV(double *a, double *b, int n){
   for (int i = 0; i < n; i++)
     b[i] = a[i];
+}
+
+/*!
+  \brief Printa um vetor (debug)
+  \param v Vetor a ser printado
+  \param n Tamanho do vetor
+*/
+void printVetor(double *v, int n){
+  for (int i = 0; i < n; i++){
+    printf("%lf ", v[i]);
+  }
+  printf("\n");
+}
+
+/*!
+  \brief Preenche com 1s a matriz identidade
+  \param matriz Matriz identidade
+  \param n Tamanho da matriz identidade
+*/
+void preencheIdent(double **matriz, int n){
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+      if(i == j)
+        matriz[i][j] = 1.0;
+}
+
+/*!
+  \brief Copia um vetor para uma coluna de matriz
+  \param m Matriz destino
+  \param v Vetor a ser copiado
+  \param n Tamanho da matriz e do vetor
+  \param i Numero da coluna a ser copiada
+*/
+void copyVCol(double **m, double *v, int n, int i){
+  for (int j = 0; j < n; j++)
+      m[j][i] = v[j];
+}
+
+/*!
+  \brief Copia uma coluna de matriz para um vetor
+  \param m Matriz origem
+  \param v Vetor destino
+  \param n Tamanho da matriz e do vetor
+  \param i Numero da coluna a ser copiada
+*/
+void copyColV(double **m, double *v, int n, int i){
+  for (int j = 0; j < n; j++)
+      v[j] = m[j][i];
+}
+
+/*!
+  \brief Copia uma matriz de doubles em outra
+  \param a Matriz origem
+  \param b Matriz destino
+  \param n Tamanho das matrizes quadradas
+*/
+void copiaMatriz(double **a, double **b, unsigned int n){
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+      b[i][j] = a[i][j];
 }
 
 /*!
@@ -107,30 +166,6 @@ int triangulariza(double **entrada, int n, S_tri *L, int pivo, double **ident){
 }
 
 /*!
-  \brief Preenche com 1s a matriz identidade
-  \param matriz Matriz identidade
-  \param n Tamanho da matriz identidade
-*/
-void preencheIdent(double **matriz, int n){
-  for (int i = 0; i < n; i++)
-    for (int j = 0; j < n; j++)
-      if(i == j)
-        matriz[i][j] = 1.0;
-}
-
-/*!
-  \brief Printa um vetor (debug)
-  \param v Vetor a ser printado
-  \param n Tamanho do vetor
-*/
-void printVetor(double *v, int n){
-  for (int i = 0; i < n; i++){
-    printf("%lf ", v[i]);
-  }
-  printf("\n");
-}
-
-/*!
   \brief Realiza a retrossubstituição em L para obter Y
   \param sistema Sistema triangular L
   \param b Coluna da matriz identidade
@@ -170,42 +205,6 @@ void retrosSubsU(double **a, double *y, double *x, int n){
     }
     x[i] /= a[i][i];
   }
-}
-
-/*!
-  \brief Copia um vetor para uma coluna de matriz
-  \param m Matriz destino
-  \param v Vetor a ser copiado
-  \param n Tamanho da matriz e do vetor
-  \param i Numero da coluna a ser copiada
-*/
-void copyVCol(double **m, double *v, int n, int i){
-  for (int j = 0; j < n; j++)
-      m[j][i] = v[j];
-}
-
-/*!
-  \brief Copia uma coluna de matriz para um vetor
-  \param m Matriz origem
-  \param v Vetor destino
-  \param n Tamanho da matriz e do vetor
-  \param i Numero da coluna a ser copiada
-*/
-void copyColV(double **m, double *v, int n, int i){
-  for (int j = 0; j < n; j++)
-      v[j] = m[j][i];
-}
-
-/*!
-  \brief Copia uma matriz de doubles em outra
-  \param a Matriz origem
-  \param b Matriz destino
-  \param n Tamanho das matrizes quadradas
-*/
-void copiaMatriz(double **a, double **b, unsigned int n){
-  for (int i = 0; i < n; i++)
-    for (int j = 0; j < n; j++)
-      b[i][j] = a[i][j];
 }
 
 void imprimeResultados(double **inversa, int n, double tTri, double tY, double tX, double *normas, FILE *saida){

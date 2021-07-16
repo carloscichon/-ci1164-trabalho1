@@ -12,7 +12,7 @@ int main(int argc, char **argv){
             saida = fopen(optarg, "w");
             if(saida == NULL){
                 fprintf(stderr, "Não foi possível abrir o arquivo %s\n", optarg);
-                return -1;
+                return 2;
             }
             break;
         case 'p':
@@ -24,7 +24,7 @@ int main(int argc, char **argv){
             fprintf (stderr, "Opção -%c precisa de um argumento.\n", optopt);
             else
             fprintf (stderr, "Opção desconhecida. %c\n", optopt);
-            return -2;
+            return 3;
         default:
             break;
         }
@@ -44,7 +44,7 @@ int main(int argc, char **argv){
             // erro de alocacao
             if(entrada == NULL || L == NULL){
                 fprintf(stderr, "Falha na alocação de memória\n");
-                return -3;
+                return 4;
             }
             fatoracaoLU(entrada, n, L, pivo, saida);
             free(entrada);
