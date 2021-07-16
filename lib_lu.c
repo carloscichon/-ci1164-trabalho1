@@ -1,116 +1,5 @@
 #include "lib_lu.h"
 
-/*!
-  \brief Alocação de uma matriz quadrada.
-  \param n Tamanho da matriz nxn.
-  \return Retorna a matriz alocada dinamicamente.
-*/
-double **alocaMatriz(int n){
-    // aloca um vetor de n ponteiros para linhas
-    double **matriz = malloc(n * sizeof(double*));
-    // aloca um vetor com todos os elementos da matriz
-    matriz[0] = malloc(n * n * sizeof(double));
-    // ajusta os demais ponteiros de linhas
-    for (int i = 1; i < n; i++)
-        matriz[i] = matriz[0] + i * n;
-    return matriz;
-}
-
-/*!
-  \brief Liberação da memória alocada para uma matriz quadrada.
-  \param matriz A matriz a ser liberada
-  \return - se a liberação funcionou. 1 se não.
-*/
-int liberaMatriz(double **matriz){
-    free(matriz[0]);
-    free(matriz);
-    if(matriz == NULL)
-        return 0;
-    return 1;
-}
-
-/*!
-  \brief Leitura de uma matriz quadrada.
-  \param n Tamanho da matriz nxn.
-  \return Retorna a matriz com os valores lidos ou NULL caso haja algum erro.
-*/
-double **leMatriz(int n){
-    double **matriz = alocaMatriz(n);
-    if(matriz == NULL)
-        return NULL;
-
-    for (int i = 0; i < n; i++){
-        for (int j = 0; j < n; j++){
-            scanf("%lf", &matriz[i][j]);
-        }
-    }
-    return matriz;
-}
-
-/*!
-  \brief Printa na saída padrão uma matriz quadrada (debug)
-  \param m Matriz a ser printada
-  \param n Tamanho da matriz nxn.
-*/
-void printMatriz(double **m, int n, FILE *saida){
-    for (int i = 0; i < n; i++){
-        for (int j = 0; j < n; j++){
-            fprintf(saida, "%lf ", m[i][j]);
-        }
-        fprintf(saida, "\n");
-    }
-    fprintf(saida, "##################################\n"); 
-    
-}
-
-/*!
-  \brief Inicializa um Sistema Triangular
-  \param sistema O sistema a ser inicializado.
-*/
-void initLu(S_tri *sistema){
-    for (int i = 0; i < sistema->n; ++i) {
-        for (int j = 0; j <= i; ++j){
-            if(i == j)
-                sistema->coef[i][j] = 1.0;
-            else
-                sistema->coef[i][j] = 0.0;
-        }
-    }  
-}
-
-/*!
-  \brief Printa na saída padrão um Sistema Triangular
-  \param sistema Sistema a ser impresso.
-*/
-void printTri(S_tri *sistema){
-    for (int i = 0; i < sistema->n; i++){
-        for (int j = 0; j < i+1; j++){
-            printf("%f ", sistema->coef[i][j]);
-        }
-        printf("\n");
-    }
-}
-
-/*!
-  \brief Alocação de um sistema triangular.
-  \param n Tamanho da matriz nxn.
-  \return Retorna o sistema alocado dinamicamente ou NULL caso haja algum erro.
-*/
-S_tri *alocaLUPadrao(int n){
-    S_tri *sistema = malloc(sizeof(S_tri));
-    
-    sistema->coef = malloc(n * sizeof(double*));
-    for (int i = 0; i < n; ++i) {
-        sistema->coef[i] = malloc((i+1) * sizeof(double*));
-    }
-    if(sistema == NULL)
-        return NULL;
-    
-    sistema->n = n;
-    initLu(sistema);
-    //printTri(sistema);
-    return sistema;
-}
 
 /*!
   \brief Encontra o pivo para o pivoteamento parcial.
@@ -150,7 +39,7 @@ void copyV(double *a, double *b, int n){
   \param matriz Matriz a ter linhas trocadas.
   \param n Tamango da matriz nxn.
   \param i Número da linha a ser trocada.
-  \param i Número da outra linha a ser trocada.
+  \param iPivo Número da outra linha a ser trocada.
 */
 void trocaLinha(double **matriz, int n, int i, int iPivo){
   double *auxVet = malloc(n * sizeof(double));
@@ -163,13 +52,15 @@ void trocaLinha(double **matriz, int n, int i, int iPivo){
 
 }
 
+/*!
+  \brief Troca duas linhas de um Sistema Triangular
+  \param L Sistema triangular a ter linhas trocadas
+  \param i Número da linha a ser trocada.
+  \param iPivo Número da outra linha a ser trocada.
+*/
 void trocaLinhaL(S_tri *L, int i, int iPivo){
-  // Troca linhas das matriz L se já possui valores salvos
     if(i > 0) {
         double temp;
-        // Como i corresponde a coluna atual da iteração sabemos que
-        // L foi preenchida até i - 1, por isso trocamos todas as linhas
-        // até este índice
         for(int j = 0; j <= i - 1; j++) {
             temp = L->coef[i][j];
             L->coef[i][j] = L->coef[iPivo][j];
@@ -207,6 +98,7 @@ int triangulariza(double **entrada, int n, S_tri *L, int pivo, double **ident){
         }
     }
 }
+
 /*!
   \brief Preenche com 1s a matriz identidade
   \param matriz Matriz identidade
@@ -289,6 +181,12 @@ void copyColV(double **m, double *v, int n, int i){
       v[j] = m[j][i];
 }
 
+/*!
+  \brief Copia uma matriz de doubles em outra
+  \param a Matriz origem
+  \param b Matriz destino
+  \param n Tamanho das matrizes quadradas
+*/
 void copiaMatriz(double **a, double **b, unsigned int n){
   for (int i = 0; i < n; i++)
     for (int j = 0; j < n; j++)
@@ -308,6 +206,15 @@ void imprimeResultados(double **inversa, int n, double tTri, double tY, double t
   
 }
 
+/*!
+  \brief Função para calcular o resíduo entre uma coluna da 
+  inversa e a matriz de entrada
+  \param matriz Matriz origem
+  \param colunaInv Coluna da matriz inversa
+  \param res Vetor de resíduos
+  \param n Tamanho da matriz e do vetor
+  \param index Índice da coluna da matriz identidade
+*/
 void residuo(double **matriz, double *colunaInv, double *res, unsigned int n, unsigned int index){
   double soma;
   double *colunaIdent = malloc(n*sizeof(double));
@@ -323,8 +230,15 @@ void residuo(double **matriz, double *colunaInv, double *res, unsigned int n, un
     }
     res[i] = soma - colunaIdent[i];
   }
+  free(colunaIdent);
 }
 
+/*!
+  \brief Calcula as normas L2 para uma matriz e sua inversa
+  \param matriz Matriz origem
+  \param inversa Matriz inversa
+  \param n Tamanho da matriz e do vetor
+*/
 double *normaL2Residuo(double **matriz, double **inversa, unsigned int n){
   double *res = malloc(n * sizeof(double));
   double *colunaInv = malloc(n * sizeof(double));
@@ -384,5 +298,9 @@ int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo, FILE *saida){
   free(X);
   free(Y);
   free(vIdent);
+  free(normas);
+  liberaMatriz(inversa, n);
+  liberaMatriz(ident, n);
+  liberaMatriz(copiaEntrada, n);
 }
 
