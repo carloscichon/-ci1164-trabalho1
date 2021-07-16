@@ -289,13 +289,57 @@ void copyColV(double **m, double *v, int n, int i){
       v[j] = m[j][i];
 }
 
-void imprimeResultados(double **inversa, int n, double tTri, double tY, double tX, FILE *saida){
+void copiaMatriz(double **a, double **b, unsigned int n){
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+      b[i][j] = a[i][j];
+}
+
+void imprimeResultados(double **inversa, int n, double tTri, double tY, double tX, double *normas, FILE *saida){
   printMatriz(inversa, n, saida);
   fprintf(saida, "Tempo de Triangularização: %lf ms\n", tTri);
   fprintf(saida, "Tempo cálculo de Y: %lf ms\n", tY);
   fprintf(saida, "Tempo cálculo de X: %lf ms\n", tX);
+  fprintf(saida, "Norma L2 do resíduo: ");
+  for (int i = 0; i < n; i++){
+    fprintf(saida, "%1.8e ", normas[i]);
+  }
+  fprintf(saida, "\n");
+  
 }
 
+void residuo(double **matriz, double *colunaInv, double *res, unsigned int n, unsigned int index){
+  double soma;
+  double *colunaIdent = malloc(n*sizeof(double));
+  for (int i = 0; i < n; i++){
+    colunaIdent[i] = 0.0;
+  }
+  colunaIdent[index] = 1.0;
+  
+  for (int i = 0; i < n; i++){
+    soma = 0.0;
+    for (int j = 0; j < n; j++){
+      soma += matriz[i][j] * colunaInv[j];
+    }
+    res[i] = soma - colunaIdent[i];
+  }
+}
+
+double *normaL2Residuo(double **matriz, double **inversa, unsigned int n){
+  double *res = malloc(n * sizeof(double));
+  double *colunaInv = malloc(n * sizeof(double));
+  double *normaL2 = malloc(n * sizeof(double));;
+  for (int i = 0; i < n; i++){
+    copyColV(inversa, colunaInv, n, i);
+    residuo(matriz, colunaInv, res, n, i);
+    for(int j = 0; j < n; j++)
+      normaL2[i] += res[j] * res[j];
+  }
+  free(res);
+  free(colunaInv);
+  return normaL2;
+
+}
 
 /*!
   \brief Aplica a fatoração LU para descobrir a matriz inversa
@@ -304,12 +348,16 @@ void imprimeResultados(double **inversa, int n, double tTri, double tY, double t
   \param L Sistema Triangular L
 */
 int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo, FILE *saida){
-  double *Y, *X, *vIdent, **ident, **inversa;
+
+  double *Y, *X, *vIdent, **ident, **inversa, **copiaEntrada, *normas;
   double tTriangulacao, tY=0, tX=0, tNorma;
   Y = malloc(n * sizeof(double));
   X = malloc(n * sizeof(double));
+  normas = malloc(n * sizeof(double));
   vIdent = malloc(n * sizeof(double));
   ident = alocaMatriz(n);
+  copiaEntrada = alocaMatriz(n);
+  copiaMatriz(entrada, copiaEntrada, n);
   inversa = alocaMatriz(n);
   preencheIdent(ident, n);
 
@@ -331,8 +379,10 @@ int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo, FILE *saida){
   tY = tY/n;
   tX = tX/n;
   //printMatriz(saida, n);
-  imprimeResultados(inversa, n, tTriangulacao, tY, tX, saida);
+  normas = normaL2Residuo(copiaEntrada, inversa, n);
+  imprimeResultados(inversa, n, tTriangulacao, tY, tX, normas, saida);
   free(X);
   free(Y);
   free(vIdent);
 }
+
