@@ -35,17 +35,16 @@ void printTri(S_tri *sistema){
 */
 S_tri *alocaLUPadrao(int n){
     S_tri *sistema = malloc(sizeof(S_tri));
-    
+    if(sistema == NULL)
+        return NULL;
     sistema->coef = malloc(n * sizeof(double*));
+    /*if(sistema->coef = NULL)
+        return NULL;*/
     for (int i = 0; i < n; ++i) {
         sistema->coef[i] = malloc((i+1) * sizeof(double*));
     }
-    if(sistema == NULL)
-        return NULL;
-    
     sistema->n = n;
     initLu(sistema);
-    //printTri(sistema);
     return sistema;
 }
 

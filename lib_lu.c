@@ -13,7 +13,6 @@ int encontraMax(double **A, int i, int n){
   int maior=-1;
   for (int j = i; j < n; j++){
     if (A[j][i] >= numLinha){
-      //printf("%lf Maior que %lf\n", A[j][i], numLinha);
       maior = j;
       numLinha = A[j][i];
     }
@@ -43,6 +42,11 @@ void copyV(double *a, double *b, int n){
 */
 void trocaLinha(double **matriz, int n, int i, int iPivo){
   double *auxVet = malloc(n * sizeof(double));
+  if (auxVet == NULL){
+    fprintf(stderr, "Erro de alocação\n");
+    exit(-3);
+  }
+  
   double aux;
   
   copyV(matriz[i], auxVet, n);
@@ -82,7 +86,6 @@ int triangulariza(double **entrada, int n, S_tri *L, int pivo, double **ident){
       iPivo = 0;
         if (pivo){
             iPivo = encontraMax(entrada, i, n);
-            //printf("Pivo: %d\n", iPivo);
             if(iPivo != i){
                 trocaLinha(entrada, n, i, iPivo);
                 trocaLinha(ident, n, i, iPivo);
@@ -90,6 +93,10 @@ int triangulariza(double **entrada, int n, S_tri *L, int pivo, double **ident){
             }
         }
         for (int k=i+1; k < n; k++){
+            if(entrada[i][i] == 0.0){
+              fprintf(stderr, "Divisão por 0 encontrada.\n");
+              exit(1);
+            }
             double m = entrada[k][i] / entrada[i][i];
             L->coef[k][i] = m;
             entrada[k][i] = 0.0;
@@ -135,6 +142,12 @@ void retrosSubsL(S_tri *sistema, double *b, double *y, int n){
     y[i] = b[i];
     for (int j = 0; j < i; j++)
       y[i] -= sistema->coef[i][j] * y[j];
+
+    if (sistema->coef[i][i] == 0.0){
+      fprintf(stderr, "Divisão por 0 encontrada.\n");
+      exit(1);
+    }
+    
     y[i] /= sistema->coef[i][i];
   }
 }
@@ -151,10 +164,12 @@ void retrosSubsU(double **a, double *y, double *x, int n){
     x[i] = y[i];
     for (int j = i+1; j < n; j++)
       x[i] -= a[i][j] * x[j];
+    if (a[i][i] == 0.0){
+      fprintf(stderr, "Divisão por 0 encontrada.\n");
+      exit(1);
+    }
     x[i] /= a[i][i];
   }
-  //printVetor(x, n);
-
 }
 
 /*!
@@ -196,8 +211,8 @@ void copiaMatriz(double **a, double **b, unsigned int n){
 void imprimeResultados(double **inversa, int n, double tTri, double tY, double tX, double *normas, FILE *saida){
   printMatriz(inversa, n, saida);
   fprintf(saida, "Tempo de Triangularização: %lf ms\n", tTri);
-  fprintf(saida, "Tempo cálculo de Y: %lf ms\n", tY);
-  fprintf(saida, "Tempo cálculo de X: %lf ms\n", tX);
+  fprintf(saida, "Tempo cálculo de Y: %1.8e ms\n", tY);
+  fprintf(saida, "Tempo cálculo de X: %1.8e ms\n", tX);
   fprintf(saida, "Norma L2 do resíduo: ");
   for (int i = 0; i < n; i++){
     fprintf(saida, "%1.8e ", normas[i]);
@@ -218,6 +233,12 @@ void imprimeResultados(double **inversa, int n, double tTri, double tY, double t
 void residuo(double **matriz, double *colunaInv, double *res, unsigned int n, unsigned int index){
   double soma;
   double *colunaIdent = malloc(n*sizeof(double));
+
+  if (colunaIdent == NULL){
+    fprintf(stderr, "Erro de alocação\n");
+    exit(-3);
+  }
+
   for (int i = 0; i < n; i++){
     colunaIdent[i] = 0.0;
   }
@@ -243,6 +264,10 @@ double *normaL2Residuo(double **matriz, double **inversa, unsigned int n){
   double *res = malloc(n * sizeof(double));
   double *colunaInv = malloc(n * sizeof(double));
   double *normaL2 = malloc(n * sizeof(double));;
+  if (res == NULL || colunaInv == NULL || normaL2 == NULL){
+    fprintf(stderr, "Erro de alocação\n");
+    exit(-3);
+  }
   for (int i = 0; i < n; i++){
     copyColV(inversa, colunaInv, n, i);
     residuo(matriz, colunaInv, res, n, i);
@@ -264,15 +289,22 @@ double *normaL2Residuo(double **matriz, double **inversa, unsigned int n){
 int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo, FILE *saida){
 
   double *Y, *X, *vIdent, **ident, **inversa, **copiaEntrada, *normas;
-  double tTriangulacao, tY=0, tX=0, tNorma;
+  double tTriangulacao, tY=0, tX=0;
   Y = malloc(n * sizeof(double));
   X = malloc(n * sizeof(double));
   normas = malloc(n * sizeof(double));
   vIdent = malloc(n * sizeof(double));
   ident = alocaMatriz(n);
   copiaEntrada = alocaMatriz(n);
-  copiaMatriz(entrada, copiaEntrada, n);
   inversa = alocaMatriz(n);
+
+  if (X == NULL || Y == NULL || normas == NULL || vIdent == NULL || 
+  ident == NULL || copiaEntrada == NULL || inversa == NULL){
+    fprintf(stderr, "Erro de alocação\n");
+    exit(-3);
+  }
+
+  copiaMatriz(entrada, copiaEntrada, n);
   preencheIdent(ident, n);
 
   fprintf(saida, "%d\n", n);
@@ -292,15 +324,15 @@ int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo, FILE *saida){
   }
   tY = tY/n;
   tX = tX/n;
-  //printMatriz(saida, n);
   normas = normaL2Residuo(copiaEntrada, inversa, n);
   imprimeResultados(inversa, n, tTriangulacao, tY, tX, normas, saida);
+
   free(X);
   free(Y);
   free(vIdent);
   free(normas);
-  liberaMatriz(inversa, n);
-  liberaMatriz(ident, n);
-  liberaMatriz(copiaEntrada, n);
+  free(inversa);
+  free(ident);
+  free(copiaEntrada);
 }
 

@@ -8,8 +8,13 @@
 double **alocaMatriz(int n){
     // aloca um vetor de n ponteiros para linhas
     double **matriz = malloc(n * sizeof(double*));
+    /*if(matriz = NULL)
+        return NULL;*/
     // aloca um vetor com todos os elementos da matriz
     matriz[0] = malloc(n * n * sizeof(double));
+    
+    /*if(matriz[0] = NULL)
+        return NULL;*/
     // ajusta os demais ponteiros de linhas
     for (int i = 1; i < n; i++)
         matriz[i] = matriz[0] + i * n;
@@ -22,10 +27,10 @@ double **alocaMatriz(int n){
   \return - se a liberação funcionou. 1 se não.
 */
 void liberaMatriz(double **matriz, unsigned int n){
-    for (int i = 1; i < n; i++){
+    /*for (int i = 1; i < n; i++){
       free(matriz[i]);
     }  
-    free(matriz[0]);
+    free(matriz[0]);*/
     free(matriz);
     
 }

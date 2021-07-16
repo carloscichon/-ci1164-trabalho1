@@ -40,16 +40,18 @@ int main(int argc, char **argv){
             scanf("%d", &n);
             L = alocaLUPadrao(n);
             entrada = leMatriz(n);
+
             // erro de alocacao
             if(entrada == NULL || L == NULL){
                 fprintf(stderr, "Falha na alocação de memória\n");
                 return -3;
             }
-            
             fatoracaoLU(entrada, n, L, pivo, saida);
+            free(entrada);
+            liberaLU(L, n);
         }
     }
-    liberaMatriz(entrada, n);
-    liberaLU(L, n);
+    
+    
     
 }
