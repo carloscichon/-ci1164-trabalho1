@@ -163,6 +163,21 @@ void trocaLinha(double **matriz, int n, int i, int iPivo){
 
 }
 
+void trocaLinhaL(S_tri *L, int i, int iPivo){
+  // Troca linhas das matriz L se já possui valores salvos
+    if(i > 0) {
+        double temp;
+        // Como i corresponde a coluna atual da iteração sabemos que
+        // L foi preenchida até i - 1, por isso trocamos todas as linhas
+        // até este índice
+        for(int j = 0; j <= i - 1; j++) {
+            temp = L->coef[i][j];
+            L->coef[i][j] = L->coef[iPivo][j];
+            L->coef[iPivo][j] = temp;
+        }
+    }
+}
+
 /*!
   \brief Realiza a triangularização de uma matriz e salva as operações num Sistema Triangular.
   \param entrada Matriz a ter linhas trocadas.
@@ -180,6 +195,7 @@ int triangulariza(double **entrada, int n, S_tri *L, int pivo, double **ident){
             if(iPivo != i){
                 trocaLinha(entrada, n, i, iPivo);
                 trocaLinha(ident, n, i, iPivo);
+                trocaLinhaL(L, i, iPivo);
             }
         }
         for (int k=i+1; k < n; k++){
@@ -191,7 +207,6 @@ int triangulariza(double **entrada, int n, S_tri *L, int pivo, double **ident){
         }
     }
 }
-
 /*!
   \brief Preenche com 1s a matriz identidade
   \param matriz Matriz identidade
