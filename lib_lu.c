@@ -63,7 +63,7 @@ void preencheIdent(double **matriz, int n){
   \param n Tamanho da matriz e do vetor
   \param i Numero da coluna a ser copiada
 */
-void copyVCol(double **m, double *v, int n, int i){
+void cpVetorEmMatriz(double **m, double *v, int n, int i){
   for (int j = 0; j < n; j++)
       m[j][i] = v[j];
 }
@@ -75,7 +75,7 @@ void copyVCol(double **m, double *v, int n, int i){
   \param n Tamanho da matriz e do vetor
   \param i Numero da coluna a ser copiada
 */
-void copyColV(double **m, double *v, int n, int i){
+void cpMatrizEmVetor(double **m, double *v, int n, int i){
   for (int j = 0; j < n; j++)
       v[j] = m[j][i];
 }
@@ -103,7 +103,7 @@ void trocaLinha(double **matriz, int n, int i, int iPivo){
   double *auxVet = malloc(n * sizeof(double));
   if (auxVet == NULL){
     fprintf(stderr, "Erro de alocação\n");
-    exit(-3);
+    exit(4);
   }
   
   double aux;
@@ -235,7 +235,7 @@ void residuo(double **matriz, double *colunaInv, double *res, unsigned int n, un
 
   if (colunaIdent == NULL){
     fprintf(stderr, "Erro de alocação\n");
-    exit(-3);
+    exit(4);
   }
 
   for (int i = 0; i < n; i++){
@@ -265,10 +265,10 @@ double *normaL2Residuo(double **matriz, double **inversa, unsigned int n){
   double *normaL2 = malloc(n * sizeof(double));;
   if (res == NULL || colunaInv == NULL || normaL2 == NULL){
     fprintf(stderr, "Erro de alocação\n");
-    exit(-3);
+    exit(4);
   }
   for (int i = 0; i < n; i++){
-    copyColV(inversa, colunaInv, n, i);
+    cpMatrizEmVetor(inversa, colunaInv, n, i);
     residuo(matriz, colunaInv, res, n, i);
     for(int j = 0; j < n; j++)
       normaL2[i] += res[j] * res[j];
@@ -286,7 +286,6 @@ double *normaL2Residuo(double **matriz, double **inversa, unsigned int n){
   \param L Sistema Triangular L
 */
 int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo, FILE *saida){
-
   double *Y, *X, *vIdent, **ident, **inversa, **copiaEntrada, *normas;
   double tTriangulacao, tY=0, tX=0;
   Y = malloc(n * sizeof(double));
@@ -297,10 +296,11 @@ int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo, FILE *saida){
   copiaEntrada = alocaMatriz(n);
   inversa = alocaMatriz(n);
 
+  // testa alocacoes
   if (X == NULL || Y == NULL || normas == NULL || vIdent == NULL || 
   ident == NULL || copiaEntrada == NULL || inversa == NULL){
     fprintf(stderr, "Erro de alocação\n");
-    exit(-3);
+    exit(4);
   }
 
   copiaMatriz(entrada, copiaEntrada, n);
@@ -308,18 +308,20 @@ int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo, FILE *saida){
 
   fprintf(saida, "%d\n", n);
   printMatriz(entrada, n, saida);
+  
   tTriangulacao = timestamp();
   triangulariza(entrada, n, L, pivo, ident);
   tTriangulacao = timestamp() - tTriangulacao;
+  // pega cada coluna da matriz identidade
   for (int i = 0; i < n; i++){
-    copyColV(ident, vIdent, n, i);
+    cpMatrizEmVetor(ident, vIdent, n, i); // necessário por conta do pivoteamento parcial
     tY += timestamp();
     retrosSubsL(L, vIdent, Y, n);
     tY = timestamp() - tY;
     tX += timestamp();
     retrosSubsU(entrada, Y, X, n);
     tX = timestamp() - tX;
-    copyVCol(inversa, X, n, i);
+    cpVetorEmMatriz(inversa, X, n, i);
   }
   tY = tY/n;
   tX = tX/n;
