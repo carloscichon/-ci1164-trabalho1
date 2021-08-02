@@ -18,7 +18,7 @@
 */
 
 double timestamp(void);
-void pegaParametrosDeExecucao(int argc, char **argv, int pivo, FILE *saida);
+void pegaParametrosDeExecucao(int argc, char **argv, int *pivo, FILE *saida);
 
 #endif // __UTILS_H__
 

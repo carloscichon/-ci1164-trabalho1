@@ -16,8 +16,10 @@ int encontraMax(double **A, int i, int n){
       numLinha = A[j][i];
     }
   }
+
   if(maior == -1)
     return i;
+
   return maior;
 }
 
@@ -106,7 +108,7 @@ void trocaLinha(double **matriz, int n, int i, int iPivo){
     exit(4);
   }
   
-  double aux;
+  //double aux;
   
   copyV(matriz[i], auxVet, n);
   copyV(matriz[iPivo], matriz[i], n);
@@ -207,18 +209,18 @@ void retrosSubsU(double **a, double *y, double *x, int n){
   }
 }
 
-void imprimeResultados(double **inversa, int n, double tTri, double tY, double tX, double *normas, FILE *saida){
-  printMatriz(inversa, n, saida);
-  fprintf(saida, "Tempo de Triangularização: %lf ms\n", tTri);
-  fprintf(saida, "Tempo cálculo de Y: %1.8e ms\n", tY);
-  fprintf(saida, "Tempo cálculo de X: %1.8e ms\n", tX);
-  fprintf(saida, "Norma L2 do resíduo: ");
-  for (int i = 0; i < n; i++){
-    fprintf(saida, "%1.8e ", normas[i]);
-  }
-  fprintf(saida, "\n");
+// void imprimeResultados(double **inversa, int n, double tTri, double tY, double tX, double *normas, FILE *saida){
+//   printMatriz(inversa, n, saida);
+//   fprintf(saida, "Tempo de Triangularização: %lf ms\n", tTri);
+//   fprintf(saida, "Tempo cálculo de Y: %1.8e ms\n", tY);
+//   fprintf(saida, "Tempo cálculo de X: %1.8e ms\n", tX);
+//   fprintf(saida, "Norma L2 do resíduo: ");
+//   for (int i = 0; i < n; i++){
+//     fprintf(saida, "%1.8e ", normas[i]);
+//   }
+//   fprintf(saida, "\n");
   
-}
+// }
 
 /*!
   \brief Função para calcular o resíduo entre uma coluna da 
@@ -271,8 +273,9 @@ double *normaL2Residuo(double **matriz, double **inversa, unsigned int n){
     cpMatrizEmVetor(inversa, colunaInv, n, i);
     residuo(matriz, colunaInv, res, n, i);
     for(int j = 0; j < n; j++)
-      normaL2[i] += res[j] * res[j];
+      normaL2[i] += res[j] * res[j]; 
   }
+  // faltou tirar a raiz
   free(res);
   free(colunaInv);
   return normaL2;
@@ -292,9 +295,9 @@ int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo, FILE *saida){
   X = malloc(n * sizeof(double));
   normas = malloc(n * sizeof(double));
   vIdent = malloc(n * sizeof(double));
-  ident = alocaMatriz(n);
-  copiaEntrada = alocaMatriz(n);
-  inversa = alocaMatriz(n);
+  ident = alocaMatriz(n, n);
+  copiaEntrada = alocaMatriz(n, n);
+  inversa = alocaMatriz(n, n);
 
   // testa alocacoes
   if (X == NULL || Y == NULL || normas == NULL || vIdent == NULL || 
@@ -307,11 +310,12 @@ int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo, FILE *saida){
   preencheIdent(ident, n);
 
   fprintf(saida, "%d\n", n);
-  printMatriz(entrada, n, saida);
+  printMatriz(entrada, n, n, saida);
   
   tTriangulacao = timestamp();
   triangulariza(entrada, n, L, pivo, ident);
   tTriangulacao = timestamp() - tTriangulacao;
+  
   // pega cada coluna da matriz identidade
   for (int i = 0; i < n; i++){
     cpMatrizEmVetor(ident, vIdent, n, i); // necessário por conta do pivoteamento parcial
@@ -326,7 +330,7 @@ int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo, FILE *saida){
   tY = tY/n;
   tX = tX/n;
   normas = normaL2Residuo(copiaEntrada, inversa, n);
-  imprimeResultados(inversa, n, tTriangulacao, tY, tX, normas, saida);
+  //imprimeResultados(inversa, n, tTriangulacao, tY, tX, normas, saida);
 
   free(X);
   free(Y);

@@ -17,7 +17,7 @@ double timestamp(void)
   return((double)(tp.tv_sec*1000.0 + tp.tv_usec/1000.0));
 }
 
-void pegaParametrosDeExecucao(int argc, char **argv, int pivo, FILE *saida){
+void pegaParametrosDeExecucao(int argc, char **argv, int *pivo, FILE *saida){
   char c;
   while ((c = getopt (argc, argv, "o:p")) != -1){
         switch (c){
@@ -31,7 +31,7 @@ void pegaParametrosDeExecucao(int argc, char **argv, int pivo, FILE *saida){
             break;
         case 'p':
             printf("Você ativou a opcao p\n");
-            pivo = 1;
+            *pivo = 1;
             break;
         case '?':
             if (optopt == 'o')

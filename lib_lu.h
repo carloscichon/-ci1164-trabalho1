@@ -8,3 +8,4 @@
 int triangulariza(double **entrada, int n, S_tri *L, int pivo, double **ident);
 int encontraMax(double **A, int i, int n);
 int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo, FILE *saida);
+void printVetor(double *v, int n);
