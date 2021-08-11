@@ -1,4 +1,6 @@
 #include "lib_lu.h"
+#include <likwid.h>
+#include <likwid-marker.h>
 
 /*!
   \brief Encontra o pivo para o pivoteamento parcial.
@@ -39,11 +41,11 @@ void copyV(double *a, double *b, int n){
   \param v Vetor a ser printado
   \param n Tamanho do vetor
 */
-void printVetor(double *v, int n){
+void printVetor(double *v, int n, FILE *saida){
   for (int i = 0; i < n; i++){
-    printf("%lf ", v[i]);
+    fprintf(saida, "%1.23e ", v[i]);
   }
-  printf("\n");
+  fprintf(saida, "\n");
 }
 
 /*!
@@ -134,6 +136,12 @@ void trocaLinhaL(S_tri *L, int i, int iPivo){
     }
 }
 
+void trocaPosVetor(double *v, int i, int iPivo){
+  double aux = v[i];
+  v[i] = v[iPivo];
+  v[iPivo] = aux;
+}
+
 /*!
   \brief Realiza a triangularização de uma matriz e salva as operações num Sistema Triangular.
   \param entrada Matriz a ter linhas trocadas.
@@ -141,7 +149,8 @@ void trocaLinhaL(S_tri *L, int i, int iPivo){
   \param L Sistema Triangular que receberá as operações (L da fatoração LU).
   \param pivo Flag de pivoteamento parcial
 */
-int triangulariza(double **entrada, int n, S_tri *L, int pivo, double **ident){
+int triangulariza(double **entrada, int n, S_tri *L, int pivo, double *func){
+  // modificada em 09/08 para o trab 2
   int iPivo;
     for (int i = 0; i < n; i++){
       iPivo = 0;
@@ -149,7 +158,7 @@ int triangulariza(double **entrada, int n, S_tri *L, int pivo, double **ident){
             iPivo = encontraMax(entrada, i, n);
             if(iPivo != i){
                 trocaLinha(entrada, n, i, iPivo);
-                trocaLinha(ident, n, i, iPivo);
+                trocaPosVetor(func, i, iPivo);
                 trocaLinhaL(L, i, iPivo);
             }
         }
@@ -163,8 +172,76 @@ int triangulariza(double **entrada, int n, S_tri *L, int pivo, double **ident){
             entrada[k][i] = 0.0;
             for (int j = i+1; j < n; j++)
                 entrada[k][j] -= entrada[i][j] * m;
+
         }
     }
+    //printMatriz(entrada, n, n, stdout);
+
+}
+
+/*!
+  \brief Realiza a triangularização de uma matriz e salva as operações num Sistema Triangular.
+  \param entrada Matriz a ter linhas trocadas.
+  \param n Tamanho da matriz nxn.
+  \param L Sistema Triangular que receberá as operações (L da fatoração LU).
+  \param pivo Flag de pivoteamento parcial
+*/
+int triangulariza_otimiz(double **entrada, int n, S_tri *L, int pivo, double *func){
+  int iPivo;
+  unsigned int m = 2; //stride
+
+    for (int i = 0; i < n; i++){
+      iPivo = 0;
+        if (pivo){
+            iPivo = encontraMax(entrada, i, n);
+            if(iPivo != i){
+                trocaLinha(entrada, n, i, iPivo);
+                trocaPosVetor(func, i, iPivo);
+                trocaLinhaL(L, i, iPivo);
+            }
+        }
+        for (int k=i+1; k < n-(n%m)-1; k+=m){
+            if(entrada[i][i] == 0.0){
+              fprintf(stderr, "Divisão por 0 encontrada.\n");
+              exit(1);
+            }
+            printf("Ola1\n");
+
+            double m = entrada[k][i] / entrada[i][i];
+            printf("Ola2 k+1=%d \n", k+1);
+            double m1 = entrada[k+1][i] / entrada[i][i];
+            L->coef[k][i] = m;
+            L->coef[k+1][i] = m1;
+            entrada[k][i] = 0.0;
+            entrada[k+1][i] = 0.0;
+            for (int j = i+1; j < n; j++){
+                entrada[k][j] -= entrada[i][j] * m;
+                entrada[k+1][j] -= entrada[i][j] * m1;
+            }
+            printf("Ola3\n");
+        }
+        printf("Ola4\n");
+        for (int k=n-(n%m)-1; k < n; k++){
+            if(k!=i){
+              if(entrada[i][i] == 0.0){
+                fprintf(stderr, "Divisão por 0 encontrada.\n");
+                exit(1);
+              }
+              printf("Ola5\n");
+              double mr = entrada[k][i] / entrada[i][i];
+              L->coef[k][i] = mr;
+              
+              entrada[k][i] = 0.0;
+              printf("Ola6\n");
+              for (int j = i+1; j < n; j++)
+                  entrada[k][j] -= entrada[i][j] * mr;
+            }
+        }
+    }
+    printf("Ola7\n");
+
+    printMatriz(entrada, n, n, stdout);
+    printTri(L);
 }
 
 /*!
@@ -209,18 +286,18 @@ void retrosSubsU(double **a, double *y, double *x, int n){
   }
 }
 
-// void imprimeResultados(double **inversa, int n, double tTri, double tY, double tX, double *normas, FILE *saida){
-//   printMatriz(inversa, n, saida);
-//   fprintf(saida, "Tempo de Triangularização: %lf ms\n", tTri);
-//   fprintf(saida, "Tempo cálculo de Y: %1.8e ms\n", tY);
-//   fprintf(saida, "Tempo cálculo de X: %1.8e ms\n", tX);
-//   fprintf(saida, "Norma L2 do resíduo: ");
-//   for (int i = 0; i < n; i++){
-//     fprintf(saida, "%1.8e ", normas[i]);
-//   }
-//   fprintf(saida, "\n");
+void imprimeResultados(double **inversa, int n, double tTri, double tY, double tX, double *normas, FILE *saida){
+  printMatriz(inversa, n, n, saida);
+  fprintf(saida, "Tempo de Triangularização: %lf ms\n", tTri);
+  fprintf(saida, "Tempo cálculo de Y: %1.8e ms\n", tY);
+  fprintf(saida, "Tempo cálculo de X: %1.8e ms\n", tX);
+  fprintf(saida, "Norma L2 do resíduo: ");
+  for (int i = 0; i < n; i++){
+    fprintf(saida, "%1.8e ", normas[i]);
+  }
+  fprintf(saida, "\n");
   
-// }
+}
 
 /*!
   \brief Função para calcular o resíduo entre uma coluna da 
@@ -313,7 +390,7 @@ int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo, FILE *saida){
   printMatriz(entrada, n, n, saida);
   
   tTriangulacao = timestamp();
-  triangulariza(entrada, n, L, pivo, ident);
+  //triangulariza(entrada, n, L, pivo, ident);
   tTriangulacao = timestamp() - tTriangulacao;
   
   // pega cada coluna da matriz identidade
@@ -330,7 +407,7 @@ int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo, FILE *saida){
   tY = tY/n;
   tX = tX/n;
   normas = normaL2Residuo(copiaEntrada, inversa, n);
-  //imprimeResultados(inversa, n, tTriangulacao, tY, tX, normas, saida);
+  imprimeResultados(inversa, n, tTriangulacao, tY, tX, normas, saida);
 
   free(X);
   free(Y);
@@ -338,6 +415,53 @@ int fatoracaoLU(double **entrada, int n, S_tri *L, int pivo, FILE *saida){
   free(normas);
   free(inversa);
   free(ident);
+  free(copiaEntrada);
+}
+
+
+/*!
+  \brief Aplica a fatoração LU para descobrir a matriz inversa
+  \param entrada Matriz U
+  \param n Tamanho da matriz e do Sistema Triangular
+  \param L Sistema Triangular L
+*/
+int fatoracaoLU2(double **entrada, int n, S_tri *L, int pivo, double *func, FILE *saida){
+  double *Y, *X, **copiaEntrada, *normas;
+  double tTriangulacao, tY=0, tX=0;
+  Y = malloc(n * sizeof(double));
+  X = malloc(n * sizeof(double));
+  normas = malloc(n * sizeof(double));
+  copiaEntrada = alocaMatriz(n, n);
+  // testa alocacoes
+  if (X == NULL || Y == NULL || normas == NULL || copiaEntrada == NULL){
+    fprintf(stderr, "Erro de alocação\n");
+    exit(4);
+  }
+
+  copiaMatriz(entrada, copiaEntrada, n);
+
+  //fprintf(saida, "%d\n", n);
+  //printMatriz(entrada, n, n, saida);
+  
+  tTriangulacao = timestamp();
+  //LIKWID_MARKER_START("Triangulariza");
+  triangulariza(entrada, n, L, pivo, func);
+  //LIKWID_MARKER_STOP("Triangulariza");
+
+  //LIKWID_MARKER_START("TriangularizaOtimiz");
+  //LIKWID_MARKER_STOP("TriangularizaOtimiz");
+
+  tTriangulacao = timestamp() - tTriangulacao;
+  retrosSubsL(L, func, Y, n);
+  retrosSubsU(entrada, Y, X, n);
+  
+  //normas = normaL2Residuo(copiaEntrada, inversa, n);
+  printVetor(X, n, saida);
+  //imprimeResultados(inversa, n, tTriangulacao, tY, tX, normas, saida);
+
+  free(X);
+  free(Y);
+  free(normas);
   free(copiaEntrada);
 }
 

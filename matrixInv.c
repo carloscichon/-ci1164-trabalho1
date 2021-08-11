@@ -1,4 +1,7 @@
-#include "lib_lu.h"
+#include "lib_interpolacao.h"
+#include "lib_ajuste.h"
+#include <likwid.h>
+#include <likwid-marker.h>
 
 int main(int argc, char **argv){
     char c;
@@ -14,19 +17,24 @@ int main(int argc, char **argv){
             ungetc(c, stdin);
             scanf("%d %d", &n, &m);
             valoresTabelados = leValoresTab(n);
-            L = alocaLUPadrao(n);
             entrada = leMatriz(n, m);
-            printVetor(valoresTabelados, n);
-            printMatriz(entrada, n, m, stdout);
+            //printVetor(valoresTabelados, n);
+            //printMatriz(entrada, n, m, stdout);
             // erro de alocacao
-            /*if(entrada == NULL || L == NULL){
+            if(entrada == NULL || L == NULL){
                 fprintf(stderr, "Falha na alocação de memória\n");
                 return 4;
             }
-            fatoracaoLU(entrada, n, L, pivo, saida);
+            for (int i = 0; i < m; ++i) {
+                //LIKWID_MARKER_INIT;
+                interpolacao(valoresTabelados, entrada[i], n, pivo, saida);
+                ajusteCurvas(valoresTabelados, entrada[i], n, pivo, saida);
+                //LIKWID_MARKER_CLOSE;
+
+
+            }
             free(entrada);
-            liberaLU(L, n);
-            free(valoresTabelados);*/
+            free(valoresTabelados);
         }
     }
 }
